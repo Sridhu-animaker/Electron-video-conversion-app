@@ -3,7 +3,7 @@ import { ipcRenderer } from "electron";
 // TODO: Communicate to MainWindow process that videos
 // have been added and are pending conversion
 export const addVideos = (videos) => (dispatch) => {
-
+  ipcRenderer.send("video:added", videos);
 };
 
 
