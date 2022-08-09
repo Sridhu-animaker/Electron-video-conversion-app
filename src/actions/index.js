@@ -4,6 +4,12 @@ import { ipcRenderer } from "electron";
 // have been added and are pending conversion
 export const addVideos = (videos) => (dispatch) => {
   ipcRenderer.send("video:added", videos);
+
+  // Getting the data from processie of Electron app
+  ipcRenderer.on("metadata:complete", (event, videosWithData) => {
+    // dispatching the videos and data via redux
+    dispatch({ type: ADD_VIDEOS, payload: videosWithData });
+  });
 };
 
 
