@@ -1,7 +1,6 @@
 const electron = require("electron");
 const ffmpeg = require("fluent-ffmpeg");
-
-const { app, BrowserWindow, ipcMain } = electron;
+const { app, BrowserWindow, ipcMain, shell } = electron;
 
 let mainWindow;
 app.on("ready", () => {
@@ -49,4 +48,28 @@ ipcMain.on("video:added", (event, videos) => {
   Promise.all(promises).then((metadata) =>
     mainWindow.webContents.send("metadata:complete", metadata)
   );
+});
+
+ipcMain.on("conversion:start", (event, videos) => {
+  videos.map((video) => {
+    const outputDirectory = video.path.split(video.name)[0]; //To get the path alone
+    const outputName = video.name.split(".")[0]; //To get file name
+    const outputPath = `${outputDirectory}${outputName}.${video.format}`;
+
+    ffmpeg(video.path)
+      .output(outputPath)
+      .on("progress", ({ timemark }) => {
+        //Destructuring time mark from event
+        mainWindow.webContents.send("conversion:progress", { video, timemark });
+      })
+      .on("end", () => {
+        mainWindow.webContents.send("conversion:send", { video, outputPath });
+      })
+      .run();
+  });
+});
+
+// To show the file in folder
+ipcMain.on("folder:open", (event, outputPath) => {
+  shell.showItemInFolder(outputPath);
 });

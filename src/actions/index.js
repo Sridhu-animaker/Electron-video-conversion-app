@@ -17,14 +17,26 @@ export const addVideos = (videos) => (dispatch) => {
 // to start converting videos.  Also listen for feedback
 // from the MainWindow regarding the current state of
 // conversion.
-export const convertVideos = () => (dispatch, getState) => {
+export const convertVideos = (videos) => (dispatch, getState) => {
+  ipcRenderer.send("conversion:start", videos);
 
+  // Recieving the event and data from the Electron app and passing it to UI
+  ipcRenderer.on("conversion:send", (event, { video, outputPath }) => {
+    // Progressbar color 
+    dispatch({ type: VIDEO_COMPLETE, payload: { ...video, outputPath } });
+  });
+
+
+  ipcRenderer.on("conversion:progress", (event, timemark) => {
+    // Progress bar logic 
+    dispatch({ type: VIDEO_PROGRESS, payload: { ...video, timemark } });
+  });
 };
 
 // TODO: Open the folder that the newly created video
 // exists in
 export const showInFolder = outputPath => dispatch => {
-
+  ipcRenderer.send("folder:open", outputPath);
 };
 
 export const addVideo = video => {
